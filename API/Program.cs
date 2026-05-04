@@ -23,8 +23,13 @@ builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings")
 );
 
+
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IuserService, UserService>();
+builder.Services.AddScoped<IHomeService, HomeService>();
 #endregion
+///////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 var app = builder.Build();
 
