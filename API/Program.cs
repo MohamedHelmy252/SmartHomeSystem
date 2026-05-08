@@ -27,6 +27,10 @@ builder.Services.Configure<EmailSettings>(
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IuserService, UserService>();
 builder.Services.AddScoped<IHomeService, HomeService>();
+builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<IESP32DeviceService, ESP32DeviceService>();
+builder.Services.AddScoped<ISmartDeviceService, SmartDeviceService>();
+builder.Services.AddScoped<ISensorService, SensorService>();
 #endregion
 ///////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
