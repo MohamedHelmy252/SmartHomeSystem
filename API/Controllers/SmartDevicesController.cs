@@ -19,7 +19,7 @@ namespace API.Controllers
 
         //  Admin API
         [HttpGet]
-         [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             var devices = await _smartDeviceService.GetAllAsync();
@@ -54,7 +54,7 @@ namespace API.Controllers
 
         //  Admin API
         [HttpGet("{id}")]
-         [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(int id)
         {
             var device = await _smartDeviceService.GetByIdAsync(id);
@@ -88,7 +88,7 @@ namespace API.Controllers
 
         //  Admin API
         [HttpGet("esp32/{esp32Id}")]
-         [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetByESP32Id(int esp32Id)
         {
             var devices = await _smartDeviceService.GetByESP32IdAsync(esp32Id);

@@ -58,7 +58,7 @@ namespace API.Controllers
         }
     
 
-        //  Admin
+        ////  Admin
         [Authorize(Roles = "Admin")]
         [HttpGet("home/{homeId}")]
         public async Task<IActionResult> GetRoomsByHome(int homeId)
@@ -69,7 +69,7 @@ namespace API.Controllers
         }
 
         // Admin
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateRoom(CreateRoomDTO request)
         {

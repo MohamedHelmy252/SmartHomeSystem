@@ -20,12 +20,12 @@ namespace Domain.Entities
 
         public int ESP32DeviceId { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         #region Relation 
         public ESP32Device ESP32Device { get; set; }
 
         public ICollection<AutomationRule> AutomationRules { get; set; }
+        public ICollection<SensorReading> SensorReadings { get; set; }
         #endregion
     }
 }

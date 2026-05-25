@@ -39,7 +39,8 @@ namespace Infrastructure.Services
             {
                 Name = request.RoomName,
                 HomeId = request.HomeId,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                Description = request.Description,
             };
 
             _context.Rooms.Add(room);
@@ -56,6 +57,7 @@ namespace Infrastructure.Services
                 return false;
 
             room.Name = request.RoomName;
+            room.Description = request.Description;
          
 
             await _context.SaveChangesAsync();

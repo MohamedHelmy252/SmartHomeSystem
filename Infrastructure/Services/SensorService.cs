@@ -137,5 +137,95 @@ namespace Infrastructure.Services
 
             return true;
         }
+
+        public async Task<List<object>> GetSensorsWithLatestReadingsForHomeOwnerRoomAsync(int userId, int roomId)
+        {
+            var home = await _context.Homes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.OwnerUserId == userId);
+
+            if (home == null)
+                return new List<object>();
+
+            var roomBelongsToOwner = await _context.Rooms
+                .AnyAsync(r => r.RoomId == roomId && r.HomeId == home.HomeId);
+
+            if (!roomBelongsToOwner)
+                return new List<object>();
+
+            var sensors = await _context.Sensors
+                .Include(s => s.ESP32Device)
+                .ThenInclude(e => e.Room)
+                .Where(s => s.ESP32Device.RoomId == roomId)
+                .Select(s => new
+                {
+                    s.SensorId,
+                    s.SensorName,
+                    s.SensorType,
+                    s.Unit,
+                    s.ThresholdValue,
+                    s.MQTTTopic,
+                    s.ESP32DeviceId,
+                    RoomId = s.ESP32Device.RoomId,
+                    RoomName = s.ESP32Device.Room.Name,
+
+                    LatestReading = _context.SensorReadings
+                        .Where(r => r.SensorId == s.SensorId)
+                        .OrderByDescending(r => r.ReadAt)
+                        .Select(r => new
+                        {
+                            r.Value,
+                            r.Unit,
+                            r.ReadAt
+                        })
+                        .FirstOrDefault()
+                })
+                .ToListAsync<object>();
+
+            return sensors;
+        }
+
+
+        public async Task<List<object>> GetAllSensorsWithLatestReadingsForHomeOwnerAsync(int userId)
+        {
+            var home = await _context.Homes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.OwnerUserId == userId);
+
+            if (home == null)
+                return new List<object>();
+
+            var sensors = await _context.Sensors
+                .Include(s => s.ESP32Device)
+                .ThenInclude(e => e.Room)
+                .Where(s => s.ESP32Device.Room.HomeId == home.HomeId)
+                .Select(s => new
+                {
+                    s.SensorId,
+                    s.SensorName,
+                    s.SensorType,
+                    s.Unit,
+                    s.ThresholdValue,
+                    s.MQTTTopic,
+                    s.ESP32DeviceId,
+
+                    RoomId = s.ESP32Device.RoomId,
+                    RoomName = s.ESP32Device.Room.Name,
+
+                    LatestReading = _context.SensorReadings
+                        .Where(r => r.SensorId == s.SensorId)
+                        .OrderByDescending(r => r.ReadAt)
+                        .Select(r => new
+                        {
+                            r.Value,
+                            r.Unit,
+                            r.ReadAt
+                        })
+                        .FirstOrDefault()
+                })
+                .ToListAsync<object>();
+
+            return sensors;
+        }
     }
 }

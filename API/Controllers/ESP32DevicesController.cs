@@ -214,7 +214,7 @@ namespace API.Controllers
 
         //  Admin API
         [HttpPost]
-         [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateESP32DeviceDTO request)
         {
             if (!ModelState.IsValid)

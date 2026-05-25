@@ -138,12 +138,13 @@ namespace API.Controllers
                 key,
                 SecurityAlgorithms.HmacSha256
             );
-
+            //====================================================
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddHours(3),
+                expires: DateTime.Now.AddHours(30),
                 signingCredentials: credentials
             );
+            //====================================================
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 

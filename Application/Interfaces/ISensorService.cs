@@ -18,5 +18,8 @@ namespace Application.Interfaces
         Task<Sensor> CreateAsync(CreateSensorDTO request);
         Task<bool> UpdateAsync(int id, UpdateSensorDTO request);
         Task<bool> DeleteAsync(int id);
+
+        Task<List<object>> GetSensorsWithLatestReadingsForHomeOwnerRoomAsync(int userId, int roomId);
+        Task<List<object>> GetAllSensorsWithLatestReadingsForHomeOwnerAsync(int userId);
     }
 }

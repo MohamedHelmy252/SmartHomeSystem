@@ -17,9 +17,14 @@ namespace API.Controllers
             _sensorService = sensorService;
         }
 
-        //  Admin API
-        [HttpGet]
+        // =========================
+        // Admin APIs
+        // =========================
+
+        // Admin API: Get all sensors
+        // Authorization: Admin only
         [Authorize(Roles = "Admin")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var sensors = await _sensorService.GetAllAsync();
@@ -51,9 +56,10 @@ namespace API.Controllers
             });
         }
 
-        //  Admin API
-        [HttpGet("{id}")]
+        // Admin API: Get sensor by id
+        // Authorization: Admin only
         [Authorize(Roles = "Admin")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var sensor = await _sensorService.GetByIdAsync(id);
@@ -84,9 +90,10 @@ namespace API.Controllers
             });
         }
 
-        //  Admin API
-        [HttpGet("esp32/{esp32Id}")]
+        // Admin API: Get sensors by ESP32 device id
+        // Authorization: Admin only
         [Authorize(Roles = "Admin")]
+        [HttpGet("esp32/{esp32Id}")]
         public async Task<IActionResult> GetByESP32Id(int esp32Id)
         {
             var sensors = await _sensorService.GetByESP32IdAsync(esp32Id);
@@ -108,9 +115,95 @@ namespace API.Controllers
             });
         }
 
-        //  HomeOwner API
-        [HttpGet("home-owner")]
+        // Admin API: Create sensor
+        // Authorization: Admin only
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateSensorDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var sensor = await _sensorService.CreateAsync(request);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Sensor created successfully",
+                    data = sensor
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        // Admin API: Update sensor
+        // Authorization: Admin only
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, UpdateSensorDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var updated = await _sensorService.UpdateAsync(id, request);
+
+            if (!updated)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Sensor not found"
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Sensor updated successfully"
+            });
+        }
+
+        // Admin API: Delete sensor
+        // Authorization: Admin only
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var deleted = await _sensorService.DeleteAsync(id);
+
+            if (!deleted)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Sensor not found"
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Sensor deleted successfully"
+            });
+        }
+
+        // =========================
+        // HomeOwner APIs
+        // =========================
+
+        // HomeOwner API: Get all sensors inside the logged-in homeowner's home
+        // Authorization: HomeOwner only
         [Authorize(Roles = "HomeOwner")]
+        [HttpGet("home-owner")]
         public async Task<IActionResult> GetMySensors()
         {
             var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -150,9 +243,10 @@ namespace API.Controllers
             });
         }
 
-        //  HomeOwner API
-        [HttpGet("home-owner/room/{roomId}")]
+        // HomeOwner API: Get sensors inside a specific room for the logged-in homeowner
+        // Authorization: HomeOwner only
         [Authorize(Roles = "HomeOwner")]
+        [HttpGet("home-owner/room/{roomId}")]
         public async Task<IActionResult> GetMySensorsByRoom(int roomId)
         {
             var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -191,81 +285,71 @@ namespace API.Controllers
             });
         }
 
-        //  Admin API
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(CreateSensorDTO request)
+        // HomeOwner API: Get sensors inside a specific room with latest reading for each sensor
+        // Authorization: HomeOwner only
+        [Authorize(Roles = "HomeOwner")]
+        [HttpGet("home-owner/room/{roomId}/latest-readings")]
+        public async Task<IActionResult> GetMySensorsWithLatestReadingsByRoom(int roomId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            try
+            if (string.IsNullOrEmpty(userIdValue))
+                return Unauthorized(new { success = false, message = "Invalid token" });
+
+            var userId = int.Parse(userIdValue);
+
+            var sensors = await _sensorService
+                .GetSensorsWithLatestReadingsForHomeOwnerRoomAsync(userId, roomId);
+
+            if (sensors == null || !sensors.Any())
             {
-                var sensor = await _sensorService.CreateAsync(request);
-
                 return Ok(new
                 {
                     success = true,
-                    message = "Sensor created successfully",
-                    data = sensor
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
-            }
-        }
-
-        //  Admin API
-        [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, UpdateSensorDTO request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var updated = await _sensorService.UpdateAsync(id, request);
-
-            if (!updated)
-            {
-                return NotFound(new
-                {
-                    success = false,
-                    message = "Sensor not found"
+                    message = "No sensors available in this room",
+                    data = new List<object>()
                 });
             }
 
             return Ok(new
             {
                 success = true,
-                message = "Sensor updated successfully"
+                data = sensors
             });
         }
 
-        //  Admin API
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var deleted = await _sensorService.DeleteAsync(id);
 
-            if (!deleted)
+
+        // HomeOwner API: Get all sensors in homeowner home with latest readings
+        // Authorization: HomeOwner only
+        [Authorize(Roles = "HomeOwner")]
+        [HttpGet("home-owner/latest-readings")]
+        public async Task<IActionResult> GetAllMySensorsWithLatestReadings()
+        {
+            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdValue))
+                return Unauthorized(new { success = false, message = "Invalid token" });
+
+            var userId = int.Parse(userIdValue);
+
+            var sensors = await _sensorService
+                .GetAllSensorsWithLatestReadingsForHomeOwnerAsync(userId);
+
+            if (sensors == null || !sensors.Any())
             {
-                return NotFound(new
+                return Ok(new
                 {
-                    success = false,
-                    message = "Sensor not found"
+                    success = true,
+                    message = "No sensors available",
+                    data = new List<object>()
                 });
             }
 
             return Ok(new
             {
                 success = true,
-                message = "Sensor deleted successfully"
+                data = sensors
             });
         }
     }

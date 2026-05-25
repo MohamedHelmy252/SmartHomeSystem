@@ -9,7 +9,7 @@ namespace Application.DTOs.Room
     {
         [Required]
         public string RoomName { get; set; }
-
+        public string Description { get; set; }
         [Required]
         public int HomeId { get; set; }
     }

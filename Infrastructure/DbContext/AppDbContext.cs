@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
@@ -24,6 +25,7 @@ namespace Infrastructure.Data
         public DbSet<AutomationRule> AutomationRules { get; set; }
         public DbSet<AutomationAction> AutomationActions { get; set; }
         public DbSet<AutomationExecution> AutomationExecutions { get; set; }
+        public DbSet<SensorReading> SensorReadings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,6 +38,7 @@ namespace Infrastructure.Data
             modelBuilder.Entity<ESP32Device>().HasKey(e => e.ESP32DeviceId);
             modelBuilder.Entity<SmartDevice>().HasKey(s => s.SmartDeviceId);
             modelBuilder.Entity<Sensor>().HasKey(s => s.SensorId);
+            modelBuilder.Entity<SensorReading>().HasKey(r => r.SensorReadingId);
             modelBuilder.Entity<Camera>().HasKey(c => c.CameraId);
             modelBuilder.Entity<KnownFace>().HasKey(k => k.FaceId);
             modelBuilder.Entity<Alert>().HasKey(a => a.AlertId);
@@ -78,6 +81,13 @@ namespace Infrastructure.Data
                 .HasOne(s => s.ESP32Device)
                 .WithMany(e => e.Sensors)
                 .HasForeignKey(s => s.ESP32DeviceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Sensor - SensorReadings
+            modelBuilder.Entity<SensorReading>()
+                .HasOne(r => r.Sensor)
+                .WithMany(s => s.SensorReadings)
+                .HasForeignKey(r => r.SensorId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Home - Cameras
@@ -166,3 +176,4 @@ namespace Infrastructure.Data
         }
     }
 }
+
