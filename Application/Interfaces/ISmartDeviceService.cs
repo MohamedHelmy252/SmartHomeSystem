@@ -19,6 +19,8 @@ namespace Application.Interfaces
         Task<bool> UpdateAsync(int id, UpdateSmartDeviceDTO request);
         Task<bool> DeleteAsync(int id);
 
-        Task<SmartDevice?> ControlAsync(int userId, int deviceId, string state);
+
+
+        Task<object?> ControlDeviceAsync(int userId, int deviceId, string state);
     }
 }

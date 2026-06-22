@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace Infrastructure.Services
 {
@@ -13,9 +14,12 @@ namespace Infrastructure.Services
     {
         private readonly AppDbContext _context;
 
-        public SmartDeviceService(AppDbContext context)
+        private IMqttService _mqttService { get; }
+
+        public SmartDeviceService(AppDbContext context, IMqttService mqttService)
         {
             _context = context;
+            _mqttService = mqttService;
         }
 
         public async Task<List<SmartDevice>> GetAllAsync()
@@ -139,12 +143,14 @@ namespace Infrastructure.Services
             return true;
         }
 
-        public async Task<SmartDevice?> ControlAsync(int userId, int deviceId, string state)
+
+
+        public async Task<object?> ControlDeviceAsync(int userId, int deviceId, string state)
         {
             state = state.Trim().ToUpper();
 
             if (state != "ON" && state != "OFF")
-                throw new Exception("Invalid state. Allowed values: ON, OFF");
+                throw new Exception("Invalid state. Allowed values are ON or OFF.");
 
             var home = await _context.Homes
                 .FirstOrDefaultAsync(h => h.OwnerUserId == userId);
@@ -162,14 +168,29 @@ namespace Infrastructure.Services
             if (device == null)
                 return null;
 
-            device.CurrentState = state;
+            var topic = device.MQTTTopic;
 
-            // TODO: هنا بعدين هنضيف MQTT Publish
-            // await _mqttService.PublishAsync(device.MQTTTopic, state);
+            var payload = JsonSerializer.Serialize(new
+            {
+                deviceId = device.SmartDeviceId,
+                state = state
+            });
+
+            await _mqttService.PublishAsync(topic, payload);
+
+            device.CurrentState = "PENDING_" + state;
 
             await _context.SaveChangesAsync();
 
-            return device;
+            return new
+            {
+                device.SmartDeviceId,
+                device.DeviceName,
+                device.DeviceType,
+                device.CurrentState,
+                mqttTopic = topic,
+                sentPayload = payload
+            };
         }
     }
 }

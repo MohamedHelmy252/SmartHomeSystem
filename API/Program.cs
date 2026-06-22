@@ -77,6 +77,11 @@ builder.Services.AddScoped<IESP32DeviceService, ESP32DeviceService>();
 builder.Services.AddScoped<ISmartDeviceService, SmartDeviceService>();
 
 builder.Services.AddScoped<ISensorService, SensorService>();
+builder.Services.Configure<MqttSettings>(
+    builder.Configuration.GetSection("MqttSettings"));
+
+builder.Services.AddSingleton<IMqttService, MqttService>();
+builder.Services.AddHostedService<MqttSubscriberHostedService>();
 
 #endregion
 

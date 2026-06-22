@@ -269,14 +269,11 @@ namespace API.Controllers
             });
         }
 
-        //  HomeOwner API
+
         [HttpPost("{id}/control")]
-        [Authorize(Roles = "HomeOwner")]
+        // [Authorize(Roles = "HomeOwner")]
         public async Task<IActionResult> ControlDevice(int id, ControlSmartDeviceDTO request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdValue))
@@ -286,27 +283,26 @@ namespace API.Controllers
 
             try
             {
-                var device = await _smartDeviceService.ControlAsync(userId, id, request.State);
+                var result = await _smartDeviceService.ControlDeviceAsync(
+                    userId,
+                    id,
+                    request.State
+                );
 
-                if (device == null)
+                if (result == null)
                 {
                     return NotFound(new
                     {
                         success = false,
-                        message = "Smart device not found or not assigned to your home"
+                        message = "Device not found or not assigned to your home"
                     });
                 }
 
                 return Ok(new
                 {
                     success = true,
-                    message = $"Device turned {device.CurrentState}",
-                    data = new
-                    {
-                        device.SmartDeviceId,
-                        device.DeviceName,
-                        device.CurrentState
-                    }
+                    message = "Device control command sent successfully",
+                    data = result
                 });
             }
             catch (Exception ex)
@@ -318,5 +314,7 @@ namespace API.Controllers
                 });
             }
         }
+
+
     }
 }
