@@ -82,6 +82,9 @@ builder.Services.Configure<MqttSettings>(
 
 builder.Services.AddSingleton<IMqttService, MqttService>();
 builder.Services.AddHostedService<MqttSubscriberHostedService>();
+builder.Services.AddScoped<IAutomationService, AutomationService>();
+builder.Services.AddHostedService<AutomationSchedulerHostedService>();
+
 
 #endregion
 

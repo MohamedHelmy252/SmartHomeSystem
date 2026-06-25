@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Domain.Entities
 {
@@ -10,21 +8,22 @@ namespace Domain.Entities
 
         public int RuleId { get; set; }
 
+        // DeviceControl / Notification
         public string ActionType { get; set; }
 
         public int? TargetDeviceId { get; set; }
 
-        public string ActionValue { get; set; }
+        // ON / OFF or notification value
+        public string? ActionValue { get; set; }
 
-        public string MessageTemplate { get; set; }
+        public string? MessageTemplate { get; set; }
 
         public int ExecutionOrder { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-        #region 
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         public AutomationRule Rule { get; set; }
 
-        public SmartDevice TargetDevice { get; set; }
-        #endregion
+        public SmartDevice? TargetDevice { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace Infrastructure.Services
         private readonly IMqttService _mqttService;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly MqttSettings _settings;
-
+     
         public MqttSubscriberHostedService(
             IMqttService mqttService,
             IServiceScopeFactory scopeFactory,
@@ -25,6 +25,7 @@ namespace Infrastructure.Services
             _mqttService = mqttService;
             _scopeFactory = scopeFactory;
             _settings = settings.Value;
+       
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -98,7 +99,15 @@ namespace Infrastructure.Services
                 });
 
                 await db.SaveChangesAsync();
+                //هنا جزء automation بعد متوصل قراءه السينسور بتتحفظ في الداتابيز وبعدها ندخل علي الجزء الجديد
+                var automationService =
+                 scope.ServiceProvider.GetRequiredService<IAutomationService>();
 
+                await automationService.EvaluateSensorRulesAsync(
+                    message.SensorId,
+                    message.Value
+                );
+                //==========================================================================
                 Console.WriteLine("Sensor reading saved successfully.");
             }
             catch (Exception ex)

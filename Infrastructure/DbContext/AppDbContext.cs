@@ -173,6 +173,12 @@ namespace Infrastructure.Data
                 .WithMany(r => r.Executions)
                 .HasForeignKey(e => e.RuleId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<AutomationExecution>()
+            .HasOne(e => e.Rule)
+            .WithMany(r => r.Executions)
+            .HasForeignKey(e => e.RuleId)
+            .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
