@@ -28,7 +28,7 @@ namespace Domain.Entities
         public ICollection<Room> Rooms { get; set; }
         public ICollection<Camera> Cameras { get; set; }
         public ICollection<KnownFace> KnownFaces { get; set; }
-        public ICollection<Alert> Alerts { get; set; }
+
         public ICollection<Log> Logs { get; set; }
         public ICollection<AutomationRule> AutomationRules { get; set; }
         #endregion

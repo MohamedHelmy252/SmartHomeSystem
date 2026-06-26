@@ -19,7 +19,7 @@ namespace Infrastructure.Data
         public DbSet<Sensor> Sensors { get; set; }
         public DbSet<Camera> Cameras { get; set; }
         public DbSet<KnownFace> KnownFaces { get; set; }
-        public DbSet<Alert> Alerts { get; set; }
+        //public DbSet<Alert> Alerts { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Log> Logs { get; set; }
         public DbSet<AutomationRule> AutomationRules { get; set; }
@@ -41,7 +41,7 @@ namespace Infrastructure.Data
             modelBuilder.Entity<SensorReading>().HasKey(r => r.SensorReadingId);
             modelBuilder.Entity<Camera>().HasKey(c => c.CameraId);
             modelBuilder.Entity<KnownFace>().HasKey(k => k.FaceId);
-            modelBuilder.Entity<Alert>().HasKey(a => a.AlertId);
+            //modelBuilder.Entity<Alert>().HasKey(a => a.AlertId);
             modelBuilder.Entity<Notification>().HasKey(n => n.NotificationId);
             modelBuilder.Entity<Log>().HasKey(l => l.LogId);
             modelBuilder.Entity<AutomationRule>().HasKey(r => r.RuleId);
@@ -105,18 +105,18 @@ namespace Infrastructure.Data
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Home - Alerts
-            modelBuilder.Entity<Alert>()
-                .HasOne(a => a.Home)
-                .WithMany(h => h.Alerts)
-                .HasForeignKey(a => a.HomeId)
-                .OnDelete(DeleteBehavior.NoAction);
+            //modelBuilder.Entity<Alert>()
+            //    .HasOne(a => a.Home)
+            //    .WithMany(h => h.Alerts)
+            //    .HasForeignKey(a => a.HomeId)
+            //    .OnDelete(DeleteBehavior.NoAction);
 
             // Alert - Notifications
-            modelBuilder.Entity<Notification>()
-                .HasOne(n => n.Alert)
-                .WithMany(a => a.Notifications)
-                .HasForeignKey(n => n.AlertId)
-                .OnDelete(DeleteBehavior.NoAction);
+            //modelBuilder.Entity<Notification>()
+            //    .HasOne(n => n.Alert)
+            //    .WithMany(a => a.Notifications)
+            //    .HasForeignKey(n => n.AlertId)
+            //    .OnDelete(DeleteBehavior.NoAction);
 
             // User - Logs
             modelBuilder.Entity<Log>()

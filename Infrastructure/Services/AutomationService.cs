@@ -11,11 +11,14 @@ namespace Infrastructure.Services
     {
         private readonly AppDbContext _context;
         private readonly IMqttService _mqttService;
-
-        public AutomationService(AppDbContext context, IMqttService mqttService)
+        private readonly INotificationService _notificationService;
+        public AutomationService(AppDbContext context,
+            IMqttService mqttService,
+            INotificationService notificationService)
         {
             _context = context;
             _mqttService = mqttService;
+            _notificationService = notificationService;
         }
 
         public async Task<List<AutomationRule>> GetForHomeOwnerAsync(int userId)
@@ -507,6 +510,12 @@ namespace Infrastructure.Services
                     TriggeredAt = DateTime.Now,
                     Status = "Success"
                 });
+
+                await _notificationService.CreateAsync(
+                 rule.UserId,
+                  "Automation Executed",
+                  $"Automation rule '{rule.RuleName}' executed successfully."
+                    );
 
                 await _context.SaveChangesAsync();
             }

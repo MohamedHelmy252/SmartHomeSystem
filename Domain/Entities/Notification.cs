@@ -7,20 +7,12 @@ namespace Domain.Entities
     public class Notification
     {
         public int NotificationId { get; set; }
-
+        public int UserId { get; set; }
         public string Title { get; set; }
+        public string Message { get; set; }
+        public bool IsRead { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        public string Body { get; set; }
-
-        public string ChannelType { get; set; }
-
-        public string DeliveryStatus { get; set; }
-
-        public int AlertId { get; set; }
-
-        public DateTime SentAt { get; set; }
-        #region Relation 
-        public Alert Alert { get; set; }
-        #endregion
+        public User User { get; set; }
     }
 }
