@@ -69,7 +69,7 @@ namespace API.Controllers
         }
 
         // Admin
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateRoom(CreateRoomDTO request)
         {

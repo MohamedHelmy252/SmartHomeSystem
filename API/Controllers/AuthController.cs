@@ -97,8 +97,14 @@ namespace API.Controllers
                     statusCode: 401
                 );
 
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
                 var fromTime = DateTime.Now.AddMinutes(-5);
+
+                var lastFailedLogin = await _context.Logs
+                    .Where(l => l.EventType == "FailedLogin")
+                    .OrderByDescending(l => l.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                var ipAddress = lastFailedLogin?.IpAddress;
 
                 var failedCount = await _context.Logs
                     .CountAsync(l =>
@@ -167,8 +173,6 @@ namespace API.Controllers
                 message = "Verification code sent to your email"
             });
         }
-
-
 
 
 
