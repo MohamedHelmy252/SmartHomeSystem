@@ -85,6 +85,8 @@ builder.Services.AddHostedService<MqttSubscriberHostedService>();
 builder.Services.AddScoped<IAutomationService, AutomationService>();
 builder.Services.AddHostedService<AutomationSchedulerHostedService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ILogService, LogService>();
 
 #endregion
 

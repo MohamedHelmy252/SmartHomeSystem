@@ -142,6 +142,7 @@ namespace Infrastructure.Services
 
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
                 var device = await db.SmartDevices
                     .FirstOrDefaultAsync(d => d.SmartDeviceId == message.DeviceId);
@@ -150,6 +151,36 @@ namespace Infrastructure.Services
                 {
                     Console.WriteLine($"DeviceId {message.DeviceId} does not exist.");
                     return;
+                }
+
+                var oldState = device.CurrentState;
+
+                if (oldState == "PENDING_ON" && message.State != "ON")
+                {
+                    await logService.LogAsync(
+                        eventType: "DeviceStatusMismatch",
+                        severity: "Warning",
+                        riskScore: 10,
+                        description: $"Device status mismatch. DeviceId: {message.DeviceId}. Expected: ON, Received: {message.State}",
+                        actorRole: "System",
+                        entityName: "SmartDevice",
+                        entityId: message.DeviceId,
+                        statusCode: 200
+                    );
+                }
+
+                if (oldState == "PENDING_OFF" && message.State != "OFF")
+                {
+                    await logService.LogAsync(
+                        eventType: "DeviceStatusMismatch",
+                        severity: "Warning",
+                        riskScore: 10,
+                        description: $"Device status mismatch. DeviceId: {message.DeviceId}. Expected: OFF, Received: {message.State}",
+                        actorRole: "System",
+                        entityName: "SmartDevice",
+                        entityId: message.DeviceId,
+                        statusCode: 200
+                    );
                 }
 
                 device.CurrentState = message.State;

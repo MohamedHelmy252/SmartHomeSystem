@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.SmartDevice;
 using Application.Interfaces;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,10 +12,12 @@ namespace API.Controllers
     public class SmartDevicesController : ControllerBase
     {
         private readonly ISmartDeviceService _smartDeviceService;
+        private readonly ILogService _logService;
 
-        public SmartDevicesController(ISmartDeviceService smartDeviceService)
+        public SmartDevicesController(ISmartDeviceService smartDeviceService,ILogService logService)
         {
             _smartDeviceService = smartDeviceService;
+            _logService = logService;
         }
 
         //  Admin API
@@ -271,13 +274,26 @@ namespace API.Controllers
 
 
         [HttpPost("{id}/control")]
-        // [Authorize(Roles = "HomeOwner")]
+         [Authorize(Roles = "HomeOwner")]
         public async Task<IActionResult> ControlDevice(int id, ControlSmartDeviceDTO request)
         {
             var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdValue))
+            {
+                await _logService.LogAsync(
+                    eventType: "DeviceControlFailed",
+                    severity: "Warning",
+                    riskScore: 7,
+                    description: $"Device control failed. Invalid token. DeviceId: {id}",
+                    actorRole: "Unknown",
+                    entityName: "SmartDevice",
+                    entityId: id,
+                    statusCode: 401
+                );
+
                 return Unauthorized(new { success = false, message = "Invalid token" });
+            }
 
             var userId = int.Parse(userIdValue);
 
@@ -291,12 +307,36 @@ namespace API.Controllers
 
                 if (result == null)
                 {
+                    await _logService.LogAsync(
+                        eventType: "UnauthorizedDeviceControl",
+                        severity: "Warning",
+                        riskScore: 12,
+                        description: $"User tried to control device outside his home or non-existing device. DeviceId: {id}",
+                        actorRole: "HomeOwner",
+                        userId: userId,
+                        entityName: "SmartDevice",
+                        entityId: id,
+                        statusCode: 404
+                    );
+
                     return NotFound(new
                     {
                         success = false,
                         message = "Device not found or not assigned to your home"
                     });
                 }
+
+                await _logService.LogAsync(
+                    eventType: "DeviceControlRequested",
+                    severity: "Information",
+                    riskScore: 3,
+                    description: $"User requested device control. DeviceId: {id}, State: {request.State}",
+                    actorRole: "HomeOwner",
+                    userId: userId,
+                    entityName: "SmartDevice",
+                    entityId: id,
+                    statusCode: 200
+                );
 
                 return Ok(new
                 {
@@ -307,6 +347,18 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
+                await _logService.LogAsync(
+                    eventType: "DeviceControlFailed",
+                    severity: "Warning",
+                    riskScore: 6,
+                    description: $"Device control failed. DeviceId: {id}, State: {request.State}. Reason: {ex.Message}",
+                    actorRole: "HomeOwner",
+                    userId: userId,
+                    entityName: "SmartDevice",
+                    entityId: id,
+                    statusCode: 400
+                );
+
                 return BadRequest(new
                 {
                     success = false,
@@ -314,7 +366,6 @@ namespace API.Controllers
                 });
             }
         }
-
 
     }
 }

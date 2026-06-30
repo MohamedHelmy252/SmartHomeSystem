@@ -1,22 +1,26 @@
 ﻿using Application.Interfaces;
 using Infrastructure.Settings;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MQTTnet;
-using MQTTnet.Protocol;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using MQTTnet.Client;
+using MQTTnet.Protocol;
+using System.Text;
+
 namespace Infrastructure.Services
 {
     public class MqttService : IMqttService
     {
         private readonly MqttSettings _settings;
         private readonly IMqttClient _mqttClient;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public MqttService(IOptions<MqttSettings> settings)
+        public MqttService(
+            IOptions<MqttSettings> settings,
+            IServiceScopeFactory scopeFactory)
         {
             _settings = settings.Value;
+            _scopeFactory = scopeFactory;
 
             var factory = new MqttFactory();
             _mqttClient = factory.CreateMqttClient();
@@ -48,15 +52,37 @@ namespace Infrastructure.Services
 
         public async Task PublishAsync(string topic, string payload)
         {
-            await ConnectAsync();
+            try
+            {
+                await ConnectAsync();
 
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(topic)
-                .WithPayload(Encoding.UTF8.GetBytes(payload))
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-                .Build();
+                var message = new MqttApplicationMessageBuilder()
+                    .WithTopic(topic)
+                    .WithPayload(Encoding.UTF8.GetBytes(payload))
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build();
 
-            await _mqttClient.PublishAsync(message);
+                await _mqttClient.PublishAsync(message);
+            }
+            catch (Exception ex)
+            {
+                using var scope = _scopeFactory.CreateScope();
+
+                var logService =
+                    scope.ServiceProvider.GetRequiredService<ILogService>();
+
+                await logService.LogAsync(
+                    eventType: "MqttPublishFailure",
+                    severity: "Error",
+                    riskScore: 15,
+                    description: $"Failed to publish MQTT message. Topic: {topic}. Error: {ex.Message}",
+                    actorRole: "System",
+                    entityName: "MQTT",
+                    statusCode: 500
+                );
+
+                throw;
+            }
         }
 
         public async Task SubscribeAsync(string topic)

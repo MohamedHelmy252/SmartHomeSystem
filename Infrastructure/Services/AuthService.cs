@@ -10,11 +10,13 @@ namespace Infrastructure.Services
     public class AuthService : IAuthService
     {
         private readonly AppDbContext _context;
+        private readonly ILogService _logService;
         private readonly PasswordHasher<User> _passwordHasher;
 
-        public AuthService(AppDbContext context)
+        public AuthService(AppDbContext context,ILogService logService)
         {
             _context = context;
+            _logService = logService;
             _passwordHasher = new PasswordHasher<User>();
         }
         #region Register 

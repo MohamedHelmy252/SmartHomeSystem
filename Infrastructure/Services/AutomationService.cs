@@ -12,13 +12,17 @@ namespace Infrastructure.Services
         private readonly AppDbContext _context;
         private readonly IMqttService _mqttService;
         private readonly INotificationService _notificationService;
+        private readonly ILogService _logService;
+
         public AutomationService(AppDbContext context,
             IMqttService mqttService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ILogService logService)
         {
             _context = context;
             _mqttService = mqttService;
             _notificationService = notificationService;
+            _logService = logService;
         }
 
         public async Task<List<AutomationRule>> GetForHomeOwnerAsync(int userId)
@@ -512,14 +516,27 @@ namespace Infrastructure.Services
                 });
 
                 await _notificationService.CreateAsync(
-                 rule.UserId,
-                  "Automation Executed",
-                  $"Automation rule '{rule.RuleName}' executed successfully."
-                    );
+                    rule.UserId,
+                    "Automation Executed",
+                    $"Automation rule '{rule.RuleName}' executed successfully."
+                );
+
+                await _logService.LogAsync(
+                    eventType: "AutomationExecuted",
+                    severity: "Information",
+                    riskScore: 3,
+                    description: $"Automation rule '{rule.RuleName}' executed successfully. TriggeredValue: {triggeredValue}",
+                    actorRole: "System",
+                    userId: rule.UserId,
+                    homeId: rule.HomeId,
+                    entityName: "AutomationRule",
+                    entityId: rule.RuleId,
+                    statusCode: 200
+                );
 
                 await _context.SaveChangesAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 _context.AutomationExecutions.Add(new AutomationExecution
                 {
@@ -529,8 +546,21 @@ namespace Infrastructure.Services
                     Status = "Failed"
                 });
 
+                await _logService.LogAsync(
+                    eventType: "AutomationExecutionFailed",
+                    severity: "Error",
+                    riskScore: 12,
+                    description: $"Automation rule execution failed. RuleId: {rule.RuleId}, TriggeredValue: {triggeredValue}, Reason: {ex.Message}",
+                    actorRole: "System",
+                    userId: rule.UserId,
+                    homeId: rule.HomeId,
+                    entityName: "AutomationRule",
+                    entityId: rule.RuleId,
+                    statusCode: 500
+                );
+
                 await _context.SaveChangesAsync();
             }
         }
     }
-}
+    }
