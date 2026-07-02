@@ -87,6 +87,7 @@ builder.Services.AddHostedService<AutomationSchedulerHostedService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<IFaceMemberService, FaceMemberService>();
 
 #endregion
 
@@ -116,7 +117,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 app.UseAuthentication();
 
 app.UseAuthorization();

@@ -20,6 +20,7 @@ namespace Infrastructure.Data
         public DbSet<Camera> Cameras { get; set; }
         public DbSet<KnownFace> KnownFaces { get; set; }
         //public DbSet<Alert> Alerts { get; set; }
+        public DbSet<HomeMemberFace> HomeMemberFaces { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Log> Logs { get; set; }
         public DbSet<AutomationRule> AutomationRules { get; set; }
@@ -179,6 +180,12 @@ namespace Infrastructure.Data
             .WithMany(r => r.Executions)
             .HasForeignKey(e => e.RuleId)
             .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<HomeMemberFace>()
+            .HasOne(f => f.Home)
+             .WithMany(h => h.HomeMemberFaces)
+             .HasForeignKey(f => f.HomeId)
+             .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
